@@ -81,17 +81,18 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const categories = ['Life/General', 'Parenting', 'TV/Movies', 'Shopping', 'Travel'];
+        const categories = ['Life General', 'Parenting', 'TV/Movies', 'Shopping', 'Travel'];
 
         function LifeLists() {
           const [tasks, setTasks] = useState([]);
           const [newTask, setNewTask] = useState('');
-          const [selectedCategory, setSelectedCategory] = useState('Life/General');
+          const [selectedCategory, setSelectedCategory] = useState('Life General');
           const [activeMode, setActiveMode] = useState('All');
           const [loading, setLoading] = useState(true);
           const [saving, setSaving] = useState(false);
           const [editingId, setEditingId] = useState(null);
           const [editText, setEditText] = useState('');
+          const [draggedTask, setDraggedTask] = useState(null);
 
           // Load tasks from cloud storage on mount
           useEffect(() => {
@@ -191,13 +192,47 @@
             }
           };
 
+          const handleDragStart = (e, task) => {
+            setDraggedTask(task);
+            e.dataTransfer.effectAllowed = 'move';
+          };
+
+          const handleDragOver = (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+          };
+
+          const handleDrop = (e, targetTask) => {
+            e.preventDefault();
+            
+            if (!draggedTask || draggedTask.id === targetTask.id) {
+              setDraggedTask(null);
+              return;
+            }
+
+            const draggedIndex = tasks.findIndex(t => t.id === draggedTask.id);
+            const targetIndex = tasks.findIndex(t => t.id === targetTask.id);
+
+            const newTasks = [...tasks];
+            newTasks.splice(draggedIndex, 1);
+            newTasks.splice(targetIndex, 0, draggedTask);
+
+            setTasks(newTasks);
+            saveTasks(newTasks);
+            setDraggedTask(null);
+          };
+
+          const handleDragEnd = () => {
+            setDraggedTask(null);
+          };
+
           const filteredTasks = activeMode === 'All' 
             ? tasks 
             : tasks.filter(task => task.category === activeMode);
 
           const getCategoryColor = (category) => {
             const colors = {
-              'Life/General': 'bg-blue-100 text-blue-700',
+              'Life General': 'bg-blue-100 text-blue-700',
               'Parenting': 'bg-pink-100 text-pink-700',
               'TV/Movies': 'bg-purple-100 text-purple-700',
               'Shopping': 'bg-green-100 text-green-700',
@@ -322,8 +357,24 @@
                       {filteredTasks.map(task => (
                         <div
                           key={task.id}
-                          className="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
+                          draggable={editingId !== task.id}
+                          onDragStart={(e) => handleDragStart(e, task)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, task)}
+                          onDragEnd={handleDragEnd}
+                          className={`flex items-center gap-3 p-4 rounded-lg transition-all border border-gray-100 ${
+                            editingId === task.id 
+                              ? 'bg-white' 
+                              : 'hover:bg-gray-50 cursor-move'
+                          } ${
+                            draggedTask?.id === task.id 
+                              ? 'opacity-50 scale-95' 
+                              : ''
+                          }`}
                         >
+                          <div className="flex-shrink-0 text-gray-400 cursor-move">
+                            ⋮⋮
+                          </div>
                           <input
                             type="checkbox"
                             checked={task.completed}
