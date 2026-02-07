@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -86,7 +87,7 @@
         function LifeLists() {
           const [tasks, setTasks] = useState([]);
           const [newTask, setNewTask] = useState('');
-          const [selectedCategory, setSelectedCategory] = useState('Work');
+          const [selectedCategory, setSelectedCategory] = useState('Life General');
           const [activeMode, setActiveMode] = useState('All');
           const [loading, setLoading] = useState(true);
           const [saving, setSaving] = useState(false);
@@ -218,7 +219,10 @@
                   {categories.map(category => (
                     <button
                       key={category}
-                      onClick={() => setActiveMode(category)}
+                      onClick={() => {
+                        setActiveMode(category);
+                        setSelectedCategory(category);
+                      }}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                         activeMode === category
                           ? 'bg-gray-800 text-white shadow-md'
@@ -286,7 +290,7 @@
                       {filteredTasks.map(task => (
                         <div
                           key={task.id}
-                          className="flex items-center gap-3 p-4 rounded-lg hover:bg-blue-50 transition-colors border border-gray-100"
+                          className="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
                         >
                           <input
                             type="checkbox"
