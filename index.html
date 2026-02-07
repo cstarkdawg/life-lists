@@ -81,12 +81,12 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const categories = ['Work', 'Parenting', 'Movies', 'Shopping', 'Travel'];
+        const categories = ['Life/General', 'Parenting', 'TV/Movies', 'Shopping', 'Travel'];
 
         function LifeLists() {
           const [tasks, setTasks] = useState([]);
           const [newTask, setNewTask] = useState('');
-          const [selectedCategory, setSelectedCategory] = useState('Work');
+          const [selectedCategory, setSelectedCategory] = useState('Life/General');
           const [activeMode, setActiveMode] = useState('All');
           const [loading, setLoading] = useState(true);
           const [saving, setSaving] = useState(false);
@@ -197,9 +197,9 @@
 
           const getCategoryColor = (category) => {
             const colors = {
-              'Work': 'bg-blue-100 text-blue-700',
+              'Life/General': 'bg-blue-100 text-blue-700',
               'Parenting': 'bg-pink-100 text-pink-700',
-              'Movies': 'bg-purple-100 text-purple-700',
+              'TV/Movies': 'bg-purple-100 text-purple-700',
               'Shopping': 'bg-green-100 text-green-700',
               'Travel': 'bg-orange-100 text-orange-700'
             };
