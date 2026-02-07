@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -82,15 +81,17 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const categories = ['Life General', 'Parenting', 'TV/Movies', 'Shopping', 'Travel'];
+        const categories = ['Work', 'Parenting', 'Movies', 'Shopping', 'Travel'];
 
         function LifeLists() {
           const [tasks, setTasks] = useState([]);
           const [newTask, setNewTask] = useState('');
-          const [selectedCategory, setSelectedCategory] = useState('Life General');
+          const [selectedCategory, setSelectedCategory] = useState('Work');
           const [activeMode, setActiveMode] = useState('All');
           const [loading, setLoading] = useState(true);
           const [saving, setSaving] = useState(false);
+          const [editingId, setEditingId] = useState(null);
+          const [editText, setEditText] = useState('');
 
           // Load tasks from cloud storage on mount
           useEffect(() => {
@@ -159,15 +160,46 @@
             saveTasks(updatedTasks);
           };
 
+          const startEdit = (task) => {
+            setEditingId(task.id);
+            setEditText(task.text);
+          };
+
+          const saveEdit = (id) => {
+            if (editText.trim()) {
+              const updatedTasks = tasks.map(task =>
+                task.id === id ? { ...task, text: editText } : task
+              );
+              setTasks(updatedTasks);
+              saveTasks(updatedTasks);
+            }
+            setEditingId(null);
+            setEditText('');
+          };
+
+          const cancelEdit = () => {
+            setEditingId(null);
+            setEditText('');
+          };
+
+          const handleEditKeyPress = (e, id) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              saveEdit(id);
+            } else if (e.key === 'Escape') {
+              cancelEdit();
+            }
+          };
+
           const filteredTasks = activeMode === 'All' 
             ? tasks 
             : tasks.filter(task => task.category === activeMode);
 
           const getCategoryColor = (category) => {
             const colors = {
-              'Life General': 'bg-blue-100 text-blue-700',
+              'Work': 'bg-blue-100 text-blue-700',
               'Parenting': 'bg-pink-100 text-pink-700',
-              'TV/Movies': 'bg-purple-100 text-purple-700',
+              'Movies': 'bg-purple-100 text-purple-700',
               'Shopping': 'bg-green-100 text-green-700',
               'Travel': 'bg-orange-100 text-orange-700'
             };
@@ -296,19 +328,34 @@
                             type="checkbox"
                             checked={task.completed}
                             onChange={() => toggleTask(task.id)}
-                            className="w-5 h-5 rounded border-gray-300 text-gray-800 focus:ring-2 focus:ring-gray-400 cursor-pointer"
+                            className="w-5 h-5 rounded border-gray-300 text-gray-800 focus:ring-2 focus:ring-gray-400 cursor-pointer flex-shrink-0"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className={`${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-                              {task.text}
-                            </p>
+                            {editingId === task.id ? (
+                              <input
+                                type="text"
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                onKeyDown={(e) => handleEditKeyPress(e, task.id)}
+                                onBlur={() => saveEdit(task.id)}
+                                autoFocus
+                                className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-400"
+                              />
+                            ) : (
+                              <p 
+                                className={`${task.completed ? 'line-through text-gray-400' : 'text-gray-800'} cursor-pointer`}
+                                onClick={() => startEdit(task)}
+                              >
+                                {task.text}
+                              </p>
+                            )}
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(task.category)}`}>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getCategoryColor(task.category)}`}>
                             {task.category}
                           </span>
                           <button
                             onClick={() => deleteTask(task.id)}
-                            className="text-gray-400 hover:text-red-500 transition-colors text-2xl leading-none px-2"
+                            className="text-gray-400 hover:text-red-500 transition-colors text-2xl leading-none px-2 flex-shrink-0"
                           >
                             ×
                           </button>
