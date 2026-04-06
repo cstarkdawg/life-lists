@@ -81,12 +81,12 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const categories = ['Life General', 'Parenting', 'TV/Movies', 'Shopping', 'Travel'];
+        const categories = ['Work', 'Parenting', 'Movies', 'Shopping', 'Travel', 'Other'];
 
         function LifeLists() {
           const [tasks, setTasks] = useState([]);
           const [newTask, setNewTask] = useState('');
-          const [selectedCategory, setSelectedCategory] = useState('Life General');
+          const [selectedCategory, setSelectedCategory] = useState('Work');
           const [activeMode, setActiveMode] = useState('All');
           const [loading, setLoading] = useState(true);
           const [saving, setSaving] = useState(false);
@@ -161,6 +161,17 @@
             saveTasks(updatedTasks);
           };
 
+          const moveToTop = (id) => {
+            const taskIndex = tasks.findIndex(t => t.id === id);
+            if (taskIndex > 0) {
+              const newTasks = [...tasks];
+              const [task] = newTasks.splice(taskIndex, 1);
+              newTasks.unshift(task);
+              setTasks(newTasks);
+              saveTasks(newTasks);
+            }
+          };
+
           const startEdit = (task) => {
             setEditingId(task.id);
             setEditText(task.text);
@@ -230,13 +241,17 @@
             ? tasks 
             : tasks.filter(task => task.category === activeMode);
 
+          const activeTasks = filteredTasks.filter(task => !task.completed);
+          const completedTasks = filteredTasks.filter(task => task.completed);
+
           const getCategoryColor = (category) => {
             const colors = {
-              'Life General': 'bg-blue-100 text-blue-700',
+              'Work': 'bg-blue-100 text-blue-700',
               'Parenting': 'bg-pink-100 text-pink-700',
-              'TV/Movies': 'bg-purple-100 text-purple-700',
+              'Movies': 'bg-purple-100 text-purple-700',
               'Shopping': 'bg-green-100 text-green-700',
-              'Travel': 'bg-orange-100 text-orange-700'
+              'Travel': 'bg-orange-100 text-orange-700',
+              'Other': 'bg-gray-100 text-gray-700'
             };
             return colors[category] || 'bg-gray-100 text-gray-700';
           };
@@ -336,25 +351,25 @@
                   </div>
                 </div>
 
-                {/* Task List */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                {/* Active Tasks List */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-medium text-gray-800">
-                      {activeMode === 'All' ? 'All Tasks' : `${activeMode} Tasks`}
+                      {activeMode === 'All' ? 'Active Tasks' : `${activeMode} Tasks`}
                     </h2>
                     <span className="text-sm text-gray-500">
-                      {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
+                      {activeTasks.length} {activeTasks.length === 1 ? 'task' : 'tasks'}
                     </span>
                   </div>
 
-                  {filteredTasks.length === 0 ? (
+                  {activeTasks.length === 0 ? (
                     <div className="text-center py-12 text-gray-400">
                       <div className="text-5xl mb-3 opacity-50">📋</div>
-                      <p>No tasks yet. Add one above!</p>
+                      <p>No active tasks. Add one above!</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {filteredTasks.map(task => (
+                      {activeTasks.map(task => (
                         <div
                           key={task.id}
                           draggable={editingId !== task.id}
@@ -394,12 +409,63 @@
                               />
                             ) : (
                               <p 
-                                className={`${task.completed ? 'line-through text-gray-400' : 'text-gray-800'} cursor-pointer`}
+                                className={`text-gray-800 cursor-pointer`}
                                 onClick={() => startEdit(task)}
                               >
                                 {task.text}
                               </p>
                             )}
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getCategoryColor(task.category)}`}>
+                            {task.category}
+                          </span>
+                          <button
+                            onClick={() => moveToTop(task.id)}
+                            className="text-gray-400 hover:text-blue-500 transition-colors text-lg leading-none px-2 flex-shrink-0"
+                            title="Move to top"
+                          >
+                            ⬆
+                          </button>
+                          <button
+                            onClick={() => deleteTask(task.id)}
+                            className="text-gray-400 hover:text-red-500 transition-colors text-2xl leading-none px-2 flex-shrink-0"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Completed Tasks List */}
+                {completedTasks.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-medium text-gray-800">
+                        Completed
+                      </h2>
+                      <span className="text-sm text-gray-500">
+                        {completedTasks.length} {completedTasks.length === 1 ? 'task' : 'tasks'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {completedTasks.map(task => (
+                        <div
+                          key={task.id}
+                          className="flex items-center gap-3 p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100 bg-green-50"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={task.completed}
+                            onChange={() => toggleTask(task.id)}
+                            className="w-5 h-5 rounded border-gray-300 text-gray-800 focus:ring-2 focus:ring-gray-400 cursor-pointer flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="line-through text-gray-500">
+                              {task.text}
+                            </p>
                           </div>
                           <span className={`px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getCategoryColor(task.category)}`}>
                             {task.category}
@@ -413,13 +479,13 @@
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Stats */}
                 <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {categories.map(category => {
-                    const count = tasks.filter(t => t.category === category).length;
+                    const count = tasks.filter(t => t.category === category && !t.completed).length;
                     return (
                       <div key={category} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                         <p className="text-gray-500 text-xs mb-1">{category}</p>
