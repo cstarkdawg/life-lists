@@ -81,7 +81,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const categories = ['Life General', 'Parenting', 'TV/Movies', 'Shopping', 'Travel', 'Other'];
+        const categories = ['Life General', 'Parenting', 'TV/Movies', 'Shopping', 'Travel', 'Projects'];
 
         function LifeLists() {
           const [tasks, setTasks] = useState([]);
@@ -251,7 +251,7 @@
               'TV/Movies': 'bg-purple-100 text-purple-700',
               'Shopping': 'bg-green-100 text-green-700',
               'Travel': 'bg-orange-100 text-orange-700',
-              'Other': 'bg-gray-100 text-gray-700'
+              'Projects': 'bg-indigo-100 text-indigo-700'
             };
             return colors[category] || 'bg-gray-100 text-gray-700';
           };
